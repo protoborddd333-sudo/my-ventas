@@ -8,26 +8,24 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from datetime import datetime, timedelta
 
 # ============================================
-# CONFIGURACIÓN DE TEMA
+# CONFIGURACIÓN DE TEMA AZUL OSCURO
 # ============================================
-COLOR_PRIMARY = "#00ff88"
-COLOR_SECONDARY = "#00cc6a"
-COLOR_BG = "#0a1a0f"
-COLOR_BG_CARD = "#0d2415"
-COLOR_TEXT = "#e0f5e8"
-COLOR_TEXT_MUTED = "#8bc9a8"
-COLOR_BORDER = "#1a3a24"
-COLOR_CHART_LINE = "#00ff88"
-COLOR_CHART_POINTS = "#00ff88"
-COLOR_SUCCESS = "#00e676"
-COLOR_WARNING = "#ffb74d"
-COLOR_DANGER = "#ff6b6b"
+COLOR_PRIMARY = "#1E90FF"        # Azul brillante (Dodger Blue)
+COLOR_SECONDARY = "#0077EE"      # Azul más oscuro
+COLOR_BG = "#0A111F"             # Azul muy oscuro (fondo principal)
+COLOR_BG_CARD = "#0F172A"        # Azul grisáceo oscuro (tarjetas)
+COLOR_TEXT = "#E0F2FE"           # Azul muy claro
+COLOR_TEXT_MUTED = "#94A3B8"     # Azul grisáceo
+COLOR_BORDER = "#1E293B"         # Borde azul oscuro
+COLOR_CHART_LINE = "#3B82F6"     # Azul medio
+COLOR_CHART_POINTS = "#60A5FA"   # Azul más claro
+COLOR_SUCCESS = "#22C55E"        # Verde para éxito (se mantiene para alertas)
+COLOR_WARNING = "#F59E0B"        # Ámbar
+COLOR_DANGER = "#EF4444"         # Rojo
 
-st.set_page_config(page_title="El Gallito | Modelamiento Matemático", page_icon="", layout="wide")
+st.set_page_config(page_title="El Gallito | Modelamiento Matemático", page_icon="🌾", layout="wide")
 
-# ============================================
-# CSS
-# ============================================
+# CSS para modo azul oscuro
 st.markdown(f"""
 <style>
     .stApp {{ background: {COLOR_BG}; }}
@@ -35,7 +33,7 @@ st.markdown(f"""
     h1, h2, h3 {{ color: {COLOR_PRIMARY} !important; }}
     [data-testid="stMetricValue"] {{ color: {COLOR_PRIMARY} !important; font-size: 2rem !important; }}
     [data-testid="stMetricLabel"] {{ color: {COLOR_TEXT_MUTED} !important; }}
-    .stButton button {{ background: linear-gradient(135deg, {COLOR_PRIMARY}, {COLOR_SECONDARY}); color: {COLOR_BG} !important; font-weight: bold !important; border: none; border-radius: 12px; }}
+    .stButton button {{ background: linear-gradient(135deg, {COLOR_PRIMARY}, {COLOR_SECONDARY}); color: white !important; font-weight: bold !important; border: none; border-radius: 12px; }}
     .stButton button:hover {{ box-shadow: 0 0 15px {COLOR_PRIMARY}80; }}
     .info-card {{ background: {COLOR_BG_CARD}; padding: 1rem; border-radius: 16px; border: 1px solid {COLOR_BORDER}; margin: 0.5rem 0; }}
     .alert-danger {{ background: #2a1518; padding: 0.75rem; border-radius: 12px; border-left: 4px solid {COLOR_DANGER}; margin: 0.5rem 0; }}
@@ -44,10 +42,8 @@ st.markdown(f"""
     hr {{ border-color: {COLOR_BORDER}; }}
     .footer {{ text-align: center; padding: 1rem 0; color: {COLOR_TEXT_MUTED}; font-size: 0.7rem; border-top: 1px solid {COLOR_BORDER}; }}
     .sidebar-card {{ background: {COLOR_BG_CARD}; padding: 1rem; border-radius: 16px; border: 1px solid {COLOR_BORDER}; text-align: center; margin-bottom: 1rem; }}
-    .stPopover {{ background: {COLOR_BG_CARD} !important; border: 1px solid {COLOR_BORDER} !important; border-radius: 16px !important; }}
-    .warning-box {{ background: #2a2015; padding: 1rem; border-radius: 12px; border: 1px solid {COLOR_WARNING}; margin: 1rem 0; }}
     .formula-box {{ background: {COLOR_BG_CARD}; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; border: 1px solid {COLOR_BORDER}; }}
-    .invalid-box {{ background: #2a1518; padding: 0.5rem; border-radius: 8px; border-left: 4px solid {COLOR_DANGER}; margin: 0.3rem 0; }}
+    .warning-box {{ background: #2a2015; padding: 1rem; border-radius: 12px; border: 1px solid {COLOR_WARNING}; margin: 1rem 0; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -59,7 +55,7 @@ with st.sidebar:
     <div class="sidebar-card">
         <h3 style="color: {COLOR_PRIMARY}; margin: 0;">TECSUP</h3>
         <p>Proyecto Integrador</p>
-        <p style="color: {COLOR_TEXT_MUTED};">Matematica Aplicada a la Mecanica</p>
+        <p style="color: {COLOR_TEXT_MUTED};">Matemática Aplicada a la Mecánica</p>
         <hr>
         <p style="color: {COLOR_PRIMARY}; font-weight: bold;">C30S-S</p>
         <p>Grupo D | Tercer Ciclo</p>
@@ -69,30 +65,22 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
+    usar_sintetico = st.checkbox("Mostrar dataset sintético (R² ≈ 0.98)", value=False,
+                                 help="Solo para comparar: datos con un solo pico que sí se ajustan bien a un polinomio de grado 2")
+    
     fecha_revision = datetime.now() + timedelta(days=180)
     st.markdown(f"""
     <div class="info-card" style="text-align: center;">
-        <span style="color: {COLOR_TEXT_MUTED};">Proxima revision</span><br>
+        <span style="color: {COLOR_TEXT_MUTED};">Próxima revisión</span><br>
         <span style="color: {COLOR_PRIMARY}; font-weight: bold;">{fecha_revision.strftime('%d/%m/%Y')}</span>
     </div>
     """, unsafe_allow_html=True)
 
 # ============================================
-# TÍTULO
-# ============================================
-st.markdown(f"""
-<div style="text-align: center; padding: 0rem 0 1rem 0;">
-    <h1 style="font-size: 2rem;">Agro-Distribuciones El Gallito</h1>
-    <p style="color: {COLOR_TEXT_MUTED};">Modelamiento Matematico con Regresion Polinomial</p>
-    <div style="width: 60px; height: 2px; background: {COLOR_PRIMARY}; margin: 0.5rem auto;"></div>
-</div>
-""", unsafe_allow_html=True)
-
-# ============================================
-# DATOS
+# DATOS REALES Y SINTÉTICOS
 # ============================================
 @st.cache_data
-def cargar_datos():
+def cargar_datos_reales():
     return pd.DataFrame({
         "Mes": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
                 "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
@@ -102,13 +90,35 @@ def cargar_datos():
         "Clientes": [950, 1000, 1050, 1200, 1300, 1250, 1150, 1100, 1050, 1100, 1300, 1400],
     })
 
+@st.cache_data
+def cargar_datos_sintetico():
+    ventas = [215000, 230000, 243000, 258000, 267000, 274000, 279000, 282000, 283000, 278000, 275000, 270000]
+    return pd.DataFrame({
+        "Mes": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+        "Periodo": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "Ventas_Soles": ventas,
+        "Clientes": [950, 1000, 1050, 1200, 1300, 1250, 1150, 1100, 1050, 1100, 1300, 1400],
+    })
+
 if "df" not in st.session_state:
-    st.session_state.df = cargar_datos()
+    st.session_state.df = cargar_datos_reales()
+if "usar_sintetico" not in st.session_state:
+    st.session_state.usar_sintetico = False
+
+if usar_sintetico != st.session_state.usar_sintetico:
+    st.session_state.usar_sintetico = usar_sintetico
+    if usar_sintetico:
+        st.session_state.df = cargar_datos_sintetico()
+    else:
+        st.session_state.df = cargar_datos_reales()
+    st.rerun()
 
 # ============================================
-# EDITOR
+# EDITOR DE DATOS
 # ============================================
 st.markdown("### Editor de Datos en Vivo")
+st.caption("Si activaste el dataset sintético, edítalo para ver cómo cambia el R².")
 
 df_editado = st.data_editor(
     st.session_state.df, 
@@ -116,12 +126,12 @@ df_editado = st.data_editor(
     use_container_width=True,
     hide_index=True,
     column_config={
-        "Periodo": st.column_config.NumberColumn("Periodo", min_value=1, max_value=12, step=1),
+        "Periodo": st.column_config.NumberColumn("Periodo", min_value=1, step=1),
         "Ventas_Soles": st.column_config.NumberColumn("Ventas (Soles)", step=1000, format="%.0f"),
     }
 )
 
-if st.button("Actualizar Datos"):
+if st.button("Actualizar Datos", use_container_width=True):
     st.session_state.df = df_editado.copy()
     st.success("Datos actualizados correctamente")
     st.rerun()
@@ -141,50 +151,45 @@ def calcular_regresion(df, grado):
     rmse = np.sqrt(mean_squared_error(y, y_pred))
     mae = mean_absolute_error(y, y_pred)
     mape = np.mean(np.abs((y - y_pred) / y)) * 100
-    return model, poly, r2, rmse, mae, mape, y_pred, X, y
+    return model, poly, r2, rmse, mae, mape, y_pred
 
-st.markdown("### Configuracion del Modelo")
-
-col_grado, col_info = st.columns([1, 2])
-
+st.markdown("### Configuración del Modelo")
+col_grado, _ = st.columns([1, 2])
 with col_grado:
     grado = st.selectbox(
         "Grado del polinomio",
         [1, 2, 3, 4, 5],
-        index=2,
-        help="Grado 2: Estable para proyecciones largas | Grado 3: Captura estacionalidad pero proyecta menos meses"
+        index=1,
+        help="Grado 2 es el más estable para proyecciones largas."
     )
 
-model, poly, r2, rmse, mae, mape, y_pred, X, y = calcular_regresion(st.session_state.df, grado)
+model, poly, r2, rmse, mae, mape, y_pred = calcular_regresion(st.session_state.df, grado)
+X = st.session_state.df["Periodo"].values
+y = st.session_state.df["Ventas_Soles"].values
 
-# ============================================
-# MENSAJE SEGÚN GRADO
-# ============================================
+# Mensaje según grado
 if grado == 1:
-    st.markdown(f"<div class='info-card'><strong>Grado 1 - Lineal</strong><br>R² = {r2:.4f} | ✅ Proyecciones estables para todo el año</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='info-card'><strong>📉 Grado 1 - Lineal</strong><br>R² = {r2:.4f} | Proyecciones estables pero no captura estacionalidad.</div>", unsafe_allow_html=True)
 elif grado == 2:
-    st.markdown(f"<div class='info-card'><strong>Grado 2 - Parabolico</strong><br>R² = {r2:.4f} | ✅ Proyecciones estables para todo el año (nunca negativo)</div>", unsafe_allow_html=True)
+    if not st.session_state.usar_sintetico:
+        st.markdown(f"<div class='info-card'><strong>📈 Grado 2 - Parabólico (modelo base)</strong><br>R² = {r2:.4f} | ⚠️ Bajo poder explicativo debido a la doble estacionalidad (picos en mayo y diciembre).<br>✅ Proyecciones estables para todo el año.</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='info-card'><strong>📈 Grado 2 - Parabólico (dataset sintético)</strong><br>R² = {r2:.4f} | ✅ Excelente ajuste porque los datos tienen un solo pico.</div>", unsafe_allow_html=True)
 elif grado == 3:
-    st.markdown(f"<div class='info-card'><strong>Grado 3 - Cubico</strong><br>R² = {r2:.4f} | ⚠️ Captura estacionalidad pero solo proyecta meses con valores positivos</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='info-card'><strong>🌀 Grado 3 - Cúbico</strong><br>R² = {r2:.4f} | ⚠️ Captura algo de estacionalidad, pero proyecciones a futuro pueden volverse negativas.</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='warning-box'><strong>Grado {grado} - Sobreajuste</strong><br>R² = {r2:.4f} | ❌ No recomendado para proyecciones. Cambie a grado 2 o 3.</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='warning-box'><strong>⚠️ Grado {grado} - Sobreajuste</strong><br>R² = {r2:.4f} (artificialmente alto). No recomendado para proyecciones.</div>", unsafe_allow_html=True)
 
-# ============================================
-# MÉTRICAS
-# ============================================
-with col_info:
-    col_r2, col_rmse, col_mae, col_mape = st.columns(4)
-    col_r2.metric("R²", f"{r2:.4f}")
-    col_rmse.metric("RMSE", f"S/ {rmse:,.0f}")
-    col_mae.metric("MAE", f"S/ {mae:,.0f}")
-    col_mape.metric("MAPE", f"{mape:.1f}%")
+# Métricas
+col_r2, col_rmse, col_mae, col_mape = st.columns(4)
+col_r2.metric("R²", f"{r2:.4f}")
+col_rmse.metric("RMSE", f"S/ {rmse:,.0f}")
+col_mae.metric("MAE", f"S/ {mae:,.0f}")
+col_mape.metric("MAPE", f"{mape:.1f}%")
 
-# ============================================
-# ECUACIÓN
-# ============================================
+# Ecuación
 coefs = model.coef_
 intercept = model.intercept_
-
 if grado == 1:
     ecuacion = f"V(t) = {coefs[1]:,.2f}·t + {intercept:,.2f}"
 elif grado == 2:
@@ -205,18 +210,15 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ============================================
-# GRÁFICO
-# ============================================
-st.markdown("### Visualizacion del Modelo")
-
+# Gráfico
+st.markdown("### Visualización del Modelo")
 t_smooth = np.linspace(1, 12, 200)
 t_smooth_poly = poly.transform(t_smooth.reshape(-1, 1))
 y_smooth = model.predict(t_smooth_poly)
 
 fig = go.Figure()
 fig.add_trace(go.Scatter(
-    x=X.flatten(), y=y, mode='markers', name='Ventas Reales',
+    x=X, y=y, mode='markers', name='Ventas Reales',
     marker=dict(size=10, color=COLOR_CHART_POINTS, symbol='circle'),
     text=st.session_state.df["Mes"].values
 ))
@@ -225,13 +227,14 @@ fig.add_trace(go.Scatter(
     line=dict(color=COLOR_CHART_LINE, width=3)
 ))
 
-for periodo, texto in {5: "Mayo - Pico", 8: "Agosto - Valle", 11: "Noviembre - Pico", 12: "Diciembre - Pico Maximo"}.items():
-    if periodo <= len(y):
-        fig.add_annotation(
-            x=periodo, y=y[periodo-1], text=texto, showarrow=True,
-            arrowhead=2, arrowcolor=COLOR_PRIMARY, ay=-30, ax=20,
-            font=dict(size=10), bgcolor=COLOR_BG_CARD, bordercolor=COLOR_BORDER
-        )
+if not st.session_state.usar_sintetico:
+    for periodo, texto in [(5, "Mayo - Pico siembra"), (12, "Diciembre - Pico máximo"), (8, "Agosto - Valle")]:
+        if periodo <= len(y):
+            fig.add_annotation(
+                x=periodo, y=y[periodo-1], text=texto, showarrow=True,
+                arrowhead=2, arrowcolor=COLOR_PRIMARY, ay=-30, ax=20,
+                font=dict(size=10), bgcolor=COLOR_BG_CARD, bordercolor=COLOR_BORDER
+            )
 
 fig.update_layout(
     title=f"Ventas vs Periodo | R² = {r2:.4f}",
@@ -243,154 +246,102 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ============================================
-# OBJETIVO 1: MESES CRÍTICOS
-# ============================================
-st.markdown("## Objetivo 1: Identificar Meses Criticos")
-
+# Objetivo 1: Meses críticos
+st.markdown("## 🎯 Objetivo 1: Identificar Meses Críticos")
 df_comp = st.session_state.df.copy()
-df_comp["Prediccion"] = [round(p, 0) for p in y_pred]
-df_comp["Diferencia"] = df_comp["Ventas_Soles"] - df_comp["Prediccion"]
+df_comp["Predicción"] = [round(p, 0) for p in y_pred]
+df_comp["Diferencia"] = df_comp["Ventas_Soles"] - df_comp["Predicción"]
 
-for _, row in df_comp.iterrows():
+for idx, row in df_comp.iterrows():
     if row["Diferencia"] > 30000:
-        st.markdown(f'<div class="alert-danger">[ALERTA] {row["Mes"]}: RIESGO DE DESABASTECIMIENTO - Demanda supera prediccion en S/ {row["Diferencia"]:,.0f}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="alert-danger">🔴 {row["Mes"]}: RIESGO DE DESABASTECIMIENTO - Demanda supera predicción en S/ {row["Diferencia"]:,.0f}</div>', unsafe_allow_html=True)
     elif row["Diferencia"] < -30000:
-        st.markdown(f'<div class="alert-warning">[ATENCION] {row["Mes"]}: RIESGO DE SOBRESTOCK - Ventas menores a prediccion en S/ {abs(row["Diferencia"]):,.0f}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="alert-warning">🟡 {row["Mes"]}: RIESGO DE SOBRESTOCK - Ventas menores a predicción en S/ {abs(row["Diferencia"]):,.0f}</div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="alert-success">[NORMAL] {row["Mes"]}: Sin riesgo critico</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="alert-success">🟢 {row["Mes"]}: Sin riesgo crítico</div>', unsafe_allow_html=True)
 
-# ============================================
-# OBJETIVO 2: PREDICCIONES FUTURAS (CON VALIDACIÓN)
-# ============================================
-st.markdown("## Objetivo 2: Predecir Ventas Futuras")
-
+# Objetivo 2: Predicciones futuras
+st.markdown("## 🔮 Objetivo 2: Predecir Ventas Futuras (Año 2)")
 if grado >= 4:
-    st.markdown(f"""
-    <div class="warning-box">
-        [NO DISPONIBLE] Grado {grado} no es confiable para proyecciones.<br>
-        Seleccione grado 2 o 3 para ver predicciones.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="warning-box">❌ Grado {grado} no es confiable para proyecciones (sobreajuste). Seleccione grado 2 o 3.</div>', unsafe_allow_html=True)
 else:
-    # Generar predicciones para los 12 meses del próximo año
     meses_futuros = list(range(13, 25))
     nombres_meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
                      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    
-    predicciones_validas = []
     datos_tabla = []
-    
+    predicciones_positivas = True
     for i, mes in enumerate(meses_futuros):
         t = np.array([[mes]])
         t_poly = poly.transform(t)
         pred = model.predict(t_poly)[0]
-        
         if pred > 0:
-            predicciones_validas.append(pred)
-            datos_tabla.append({
-                "Mes (Año 2)": nombres_meses[i],
-                "Ventas Proyectadas": f"S/ {pred:,.0f}",
-                "Estado": "Valido"
-            })
+            datos_tabla.append({"Mes (Año 2)": nombres_meses[i], "Ventas Proyectadas": f"S/ {pred:,.0f}", "Válida": "✅"})
         else:
-            datos_tabla.append({
-                "Mes (Año 2)": nombres_meses[i],
-                "Ventas Proyectadas": "---",
-                "Estado": "Invalido (valor negativo)"
-            })
-    
-    # Mostrar tabla de proyecciones
-    df_proyecciones = pd.DataFrame(datos_tabla)
-    st.dataframe(df_proyecciones, use_container_width=True, hide_index=True)
-    
-    # Explicación de por qué algunos meses son inválidos
-    if grado == 3:
-        st.markdown(f"""
-        <div class="info-card">
-            <strong>Nota sobre las proyecciones con grado 3:</strong><br><br>
-            - Los meses marcados como "Invalido" son aquellos donde el polinomio predice valores negativos.<br>
-            - Esto ocurre porque un polinomio de grado 3 no es estable para extrapolaciones largas.<br>
-            - A partir de julio (t=19), el modelo deja de ser fiable.<br>
-            - Para ver proyecciones de todo el año, cambie a <strong>grado 2</strong>.
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Si es grado 2, mostrar todas las proyecciones válidas
-    if grado == 2 and len(predicciones_validas) == 12:
-        st.markdown(f"""
-        <div class="success-box">
-            <strong>Grado 2 - Proyecciones estables</strong><br><br>
-            Con grado 2, todas las proyecciones son positivas y siguen una tendencia decreciente<br>
-            después del pico de diciembre, lo cual es consistente con el comportamiento real del negocio.
-        </div>
-        """, unsafe_allow_html=True)
+            datos_tabla.append({"Mes (Año 2)": nombres_meses[i], "Ventas Proyectadas": "--- (negativo)", "Válida": "❌"})
+            predicciones_positivas = False
+    st.dataframe(pd.DataFrame(datos_tabla), use_container_width=True, hide_index=True)
+    if not predicciones_positivas:
+        st.markdown('<div class="warning-box">⚠️ Algunas proyecciones son negativas – Use grado 2 para estabilidad.</div>', unsafe_allow_html=True)
 
-# ============================================
-# OBJETIVO 3: OPTIMIZAR PLANIFICACIÓN
-# ============================================
-st.markdown("## Objetivo 3: Optimizar Planificacion")
-
+# Objetivo 3: Optimizar planificación
+st.markdown("## 📦 Objetivo 3: Optimizar Planificación de Inventario")
 acciones = []
 for _, row in df_comp.iterrows():
     if row["Diferencia"] > 30000:
-        accion = "[URGENTE] Aumentar compras +50%"
+        accion = "🔺 Aumentar compras +50% (riesgo desabastecimiento)"
     elif row["Diferencia"] < -30000:
-        accion = "[PRECAUCION] Reducir compras -30% + promociones"
+        accion = "🔻 Reducir compras -30% + promociones (riesgo sobrestock)"
     else:
-        accion = "[NORMAL] Mantener plan actual"
-    acciones.append({"Mes": row["Mes"], "Accion Recomendada": accion})
-
+        accion = "✅ Mantener plan actual"
+    acciones.append({"Mes": row["Mes"], "Acción Recomendada": accion})
 st.dataframe(pd.DataFrame(acciones), use_container_width=True, hide_index=True)
 
-st.markdown("### Plan de Compras por Producto Critico")
-
+st.markdown("### Plan de Compras por Producto Prioritario")
 plan_productos = pd.DataFrame({
     "Mes": ["Abril", "Mayo", "Octubre", "Noviembre", "Diciembre"],
-    "Producto Prioritario": ["Papa", "Papa + Cebolla", "Cebolla", "Ajo + Cebolla", "Ajo + Cebolla"],
+    "Producto Prioritario": ["Papa", "Papa + Cebolla", "Cebolla", "Ajo Chino + Cebolla", "Ajo Chino + Cebolla"],
     "Ajuste de Stock": ["+30%", "+40%", "+20%", "+50%", "+60%"],
-    "Justificacion": ["Pre-siembra", "Pico demanda", "Pre-cosecha", "Pico ajo", "Pico maximo"]
+    "Justificación": ["Pre‑siembra", "Pico de demanda papa", "Pre‑cosecha", "Pico de ajo chino", "Pico máximo anual"]
 })
 st.dataframe(plan_productos, use_container_width=True, hide_index=True)
+st.markdown(f'<div class="info-card">💰 Impacto estimado: Reducción de pérdidas en ~S/ 60,000 anuales.</div>', unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="info-card">
-    [AHORRO] Implementar este plan reduce perdidas por sobrestock y desabastecimiento en aproximadamente S/ 60,000 anuales.
-</div>
-""", unsafe_allow_html=True)
-
-# ============================================
-# CONCLUSIONES
-# ============================================
-st.markdown("## Conclusiones y Recomendaciones")
-
-col_tec, col_ges = st.columns(2)
-
-with col_tec:
+# Conclusiones
+st.markdown("## 📝 Conclusiones y Recomendaciones")
+if not st.session_state.usar_sintetico:
+    col_tec, col_ges = st.columns(2)
+    with col_tec:
+        st.markdown(f"""
+        <div class="info-card">
+            <strong>🔬 Conclusiones Técnicas</strong><br><br>
+            1. Con grado 2, R² = {r2:.4f} → explica solo el {r2*100:.1f}% de la variabilidad.<br>
+            2. Causa: doble estacionalidad (picos en mayo y diciembre).<br>
+            3. Grados superiores sobreajustan y no son fiables.
+        </div>
+        """, unsafe_allow_html=True)
+    with col_ges:
+        st.markdown(f"""
+        <div class="info-card">
+            <strong>📊 Conclusiones de Gestión</strong><br><br>
+            1. Meses críticos: Mayo, Noviembre, Diciembre.<br>
+            2. Meses con sobrestock: Enero, Febrero, Marzo, Agosto, Setiembre.<br>
+            3. Ajustar inventario según tabla de compras.<br>
+            4. Recalibrar el modelo cada 6 meses.
+        </div>
+        """, unsafe_allow_html=True)
+else:
     st.markdown(f"""
     <div class="info-card">
-        <strong>Conclusiones Tecnicas</strong><br><br>
-        1. R² = {r2:.4f} → El modelo explica el {r2*100:.1f}% de la variabilidad.<br>
-        2. Con grado {grado}: {"Proyecciones estables" if grado <= 2 else "Proyecciones limitadas a meses validos"}<br>
-        3. Grado 2 es el mas recomendado para proyecciones de todo el año.
+        <strong>✨ Demostración con dataset sintético</strong><br><br>
+        Con datos de un solo pico, el polinomio de grado 2 alcanza R² = {r2:.4f}.<br>
+        Esto confirma que el bajo R² en los datos reales se debe a la doble estacionalidad, no al método.
     </div>
     """, unsafe_allow_html=True)
 
-with col_ges:
-    st.markdown(f"""
-    <div class="info-card">
-        <strong>Conclusiones de Gestion</strong><br><br>
-        1. Meses criticos: Mayo, Noviembre, Diciembre.<br>
-        2. Aumentar stock +50% en noviembre y +60% en diciembre.<br>
-        3. Recalibrar el modelo cada 6 meses.
-    </div>
-    """, unsafe_allow_html=True)
-
-# ============================================
-# FOOTER
-# ============================================
+# Footer
 st.markdown(f"""
 <div class="footer">
-    TECSUP - Proyecto Integrador | Matematica Aplicada a la Mecanica | C30S-S | Grupo D | Tercer Ciclo
+    TECSUP - Proyecto Integrador | Matemática Aplicada a la Mecánica | C30S-S | Grupo D | Tercer Ciclo<br>
+    Agro-Distribuciones El Gallito (La Joya, Arequipa) - Regresión polinomial
 </div>
 """, unsafe_allow_html=True)
