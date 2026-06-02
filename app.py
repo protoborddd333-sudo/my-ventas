@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 # TEMA AZUL PROFESIONAL
 # ==============================================================================
 COLORS = {
-    "primary": "#2DD4BF",      # turquesa para acentos
+    "primary": "#2DD4BF",
     "primary_blue": "#3B82F6",
     "primary_dark": "#0F766E",
     "bg": "#0A0F1E",
@@ -29,7 +29,7 @@ COLORS = {
 
 st.set_page_config(page_title="El Gallito | Modelamiento Matemático", page_icon="🌾", layout="wide")
 
-# CSS compacto azul
+# CSS compacto azul + tooltips personalizados
 st.markdown(f"""
 <style>
     .stApp {{ background: {COLORS['bg']}; }}
@@ -49,6 +49,33 @@ st.markdown(f"""
     hr {{ margin: 0.5rem 0; }}
     .stMarkdown p {{ margin-bottom: 0.25rem; }}
     div.block-container {{ padding-top: 1rem; padding-bottom: 0rem; }}
+    /* Tooltip personalizado para indicadores */
+    .metric-tooltip {{
+        border-bottom: 1px dashed {COLORS['primary_blue']};
+        cursor: help;
+        display: inline-block;
+    }}
+    .metric-tooltip:hover {{
+        color: {COLORS['primary_blue']};
+    }}
+    .metric-card {{
+        background: {COLORS['bg_card']};
+        border-radius: 12px;
+        padding: 0.5rem;
+        text-align: center;
+        border: 1px solid {COLORS['border']};
+    }}
+    .metric-value {{
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: {COLORS['primary_blue']};
+        line-height: 1.2;
+    }}
+    .metric-label {{
+        font-size: 0.85rem;
+        color: {COLORS['text_muted']};
+        margin-top: 0.25rem;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -148,10 +175,9 @@ for d in degrees_to_compare:
 df_compare = pd.DataFrame(results)
 st.dataframe(df_compare.style.format({"R²": "{:.4f}", "RMSE": "{:,.0f}", "MAE": "{:,.0f}", "MAPE (%)": "{:.1f}"}), use_container_width=True)
 
-# Gráfico comparativo: datos reales + curvas de cada grado
+# Gráfico comparativo
 X_plot = np.linspace(1, 12, 200)
 fig_compare = go.Figure()
-# Agregar puntos reales
 fig_compare.add_trace(go.Scatter(
     x=st.session_state.df["Periodo"], y=st.session_state.df["Ventas_Soles"],
     mode='markers', name='Datos reales',
@@ -178,7 +204,7 @@ fig_compare.update_layout(
 st.plotly_chart(fig_compare, use_container_width=True)
 
 # ==============================================================================
-# EXPLICACIÓN MATEMÁTICA DE INESTABILIDAD EN GRADOS ALTOS
+# EXPLICACIÓN MATEMÁTICA DE INESTABILIDAD
 # ==============================================================================
 with st.expander("📐 ¿Por qué los grados altos (≥4) son inestables? (Explicación matemática)"):
     st.markdown(r"""
@@ -209,12 +235,42 @@ model, poly, r2, rmse, mae, mape, y_pred = get_metrics(st.session_state.df, degr
 X = st.session_state.df["Periodo"].values
 y = st.session_state.df["Ventas_Soles"].values
 
-# Métricas
+# ------------------------------------------------------------------------------
+# MÉTRICAS CON TOOLTIP (hover)
+# ------------------------------------------------------------------------------
+# Función para crear una métrica con tooltip personalizado
+def metric_with_tooltip(label, value, tooltip_text, format_str=None):
+    if format_str:
+        value_display = format_str.format(value)
+    else:
+        value_display = f"{value:.4f}" if isinstance(value, float) else str(value)
+    html = f"""
+    <div class="metric-card">
+        <div class="metric-value">{value_display}</div>
+        <div class="metric-label">
+            <span class="metric-tooltip" title="{tooltip_text}">{label} ℹ️</span>
+        </div>
+    </div>
+    """
+    return html
+
+# Tooltips específicos para el caso de ventas
+tooltips = {
+    "R²": "Coeficiente de determinación: indica qué porcentaje de la variación de las ventas reales explica el modelo. Cercano a 1 = muy buen ajuste. En este caso, un R² bajo sugiere que el modelo no captura bien los dos picos (mayo y diciembre).",
+    "RMSE": "Raíz del error cuadrático medio: mide el error típico de predicción en soles. Por ejemplo, un RMSE de S/ 35,000 significa que las predicciones del modelo se desvían en promedio unos S/ 35,000 de las ventas reales.",
+    "MAE": "Error absoluto medio: promedio de los errores absolutos (sin signo). Más robusto que RMSE frente a valores atípicos. Interpretación directa: 'las predicciones fallan en promedio por S/ X'.",
+    "MAPE": "Error porcentual absoluto medio: expresa el error promedio como porcentaje de las ventas reales. Por ejemplo, un MAPE del 10% significa que las predicciones se equivocan en un 10% respecto a las ventas reales. Útil para comparar entre productos."
+}
+
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("R²", f"{r2:.4f}")
-col2.metric("RMSE", f"S/ {rmse:,.0f}")
-col3.metric("MAE", f"S/ {mae:,.0f}")
-col4.metric("MAPE", f"{mape:.1f}%")
+with col1:
+    st.markdown(metric_with_tooltip("R²", r2, tooltips["R²"], "{:.4f}"), unsafe_allow_html=True)
+with col2:
+    st.markdown(metric_with_tooltip("RMSE", rmse, tooltips["RMSE"], "S/ {:,.0f}"), unsafe_allow_html=True)
+with col3:
+    st.markdown(metric_with_tooltip("MAE", mae, tooltips["MAE"], "S/ {:,.0f}"), unsafe_allow_html=True)
+with col4:
+    st.markdown(metric_with_tooltip("MAPE", mape, tooltips["MAPE"], "{:.1f}%"), unsafe_allow_html=True)
 
 # Ecuación
 coefs = model.coef_
@@ -242,7 +298,7 @@ fig.update_layout(height=350, margin=dict(l=0,r=0,t=30,b=0), plot_bgcolor=COLORS
 st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
-# ANÁLISIS DE RESULTADOS SEGÚN GRADO SELECCIONADO
+# ANÁLISIS DE RESULTADOS
 # ==============================================================================
 st.markdown("### Análisis de resultados")
 if degree == 1:
@@ -261,7 +317,7 @@ elif degree >= 4:
     st.error(f"Grado {degree} → Sobreajuste peligroso. R² alto artificialmente, pero la curva se comporta erráticamente entre puntos y extrapola con valores absurdos. **No usar para decisiones de inventario**.")
 
 # ==============================================================================
-# OBJETIVOS OPERATIVOS (igual que antes, mejorado)
+# OBJETIVOS OPERATIVOS
 # ==============================================================================
 st.markdown("### Objetivo 1: Meses críticos (desabastecimiento / sobrestock)")
 df_comp = st.session_state.df.copy()
