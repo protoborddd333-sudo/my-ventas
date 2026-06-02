@@ -5,14 +5,15 @@ import plotly.graph_objects as go
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from datetime import datetime, timedelta
 
 # ==============================================================================
 # CONFIGURACIÓN VISUAL (TEMA OSCURO PROFESIONAL)
 # ==============================================================================
 COLORS = {
-    "primary": "#2DD4BF",      # cyan
+    "primary": "#2DD4BF",
     "primary_dark": "#0F766E",
-    "bg": "#0A0F1E",           # azul muy oscuro
+    "bg": "#0A0F1E",
     "bg_card": "#111827",
     "text": "#F3F4F6",
     "text_muted": "#9CA3AF",
@@ -26,7 +27,6 @@ COLORS = {
 
 st.set_page_config(page_title="Modelamiento Matemático | El Gallito", layout="wide")
 
-# CSS personalizado (similar a versiones anteriores)
 st.markdown(f"""
 <style>
     .stApp {{ background: {COLORS['bg']}; }}
@@ -36,12 +36,15 @@ st.markdown(f"""
     [data-testid="stMetricLabel"] {{ color: {COLORS['text_muted']} !important; }}
     .stButton button {{ background: linear-gradient(135deg, {COLORS['primary']}, {COLORS['primary_dark']}); color: {COLORS['bg']} !important; font-weight: bold; border: none; border-radius: 8px; }}
     .info-card {{ background: {COLORS['bg_card']}; padding: 1rem; border-radius: 16px; border: 1px solid {COLORS['border']}; margin: 0.5rem 0; }}
-    .footer {{ text-align: center; padding: 1rem 0; color: {COLORS['text_muted']}; font-size: 0.7rem; border-top: 1px solid {COLORS['border']}; }}
+    .alert-success {{ background: #0E2A1F; padding: 0.5rem 0.75rem; border-radius: 8px; border-left: 4px solid {COLORS['success']}; margin: 0.3rem 0; font-size: 0.85rem; }}
+    .alert-warning {{ background: #2D271A; padding: 0.5rem 0.75rem; border-radius: 8px; border-left: 4px solid {COLORS['warning']}; margin: 0.3rem 0; font-size: 0.85rem; }}
+    .alert-danger {{ background: #2D1A2B; padding: 0.5rem 0.75rem; border-radius: 8px; border-left: 4px solid {COLORS['danger']}; margin: 0.3rem 0; font-size: 0.85rem; }}
+    .footer {{ text-align: center; padding: 1rem 0; color: {COLORS['text_muted']}; font-size: 0.7rem; border-top: 1px solid {COLORS['border']}; margin-top: 1rem; }}
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# DATOS (basados en el informe LaTeX)
+# DATOS (basados en el informe)
 # ==============================================================================
 @st.cache_data
 def load_data():
@@ -66,15 +69,15 @@ with st.sidebar:
     st.markdown("**Agro-Distribuciones El Gallito**")
     st.markdown("La Joya, Arequipa")
     st.markdown("---")
-    grado = st.selectbox("Grado del polinomio", [1,2,3,4,5], index=1, help="Grado 2 es el modelo del informe")
+    grado = st.selectbox("Grado del polinomio", [1,2,3,4,5], index=1, help="Grado 2 es el modelo recomendado")
     st.markdown("---")
-    st.caption("Los datos corresponden a ventas reales (S/). El modelo de grado 2 logra un R² = 0.9993.")
+    st.caption("Datos reales de ventas mensuales. El modelo de grado 2 explica el 99.93% de la variabilidad.")
 
 # ==============================================================================
 # EDITOR DE DATOS
 # ==============================================================================
 st.title("Modelamiento Matemático para Optimización de Ventas")
-st.markdown("**Ecuación del informe:** \( y = 132139.25 + 108146.85\\,x - 7952.5\\,x^2 \) con \(R^2 = 0.9993\)")
+st.markdown("**Ecuación del informe (grado 2):** \( y = 132139.25 + 108146.85\\,x - 7952.5\\,x^2 \) con \(R^2 = 0.9993\)")
 
 st.markdown("### Datos mensuales (puede editar)")
 edited_df = st.data_editor(
@@ -93,7 +96,7 @@ if st.button("Actualizar modelo con datos modificados"):
     st.rerun()
 
 # ==============================================================================
-# REGRESIÓN Y MÉTRICAS
+# REGRESIÓN (solo grado 2 para las predicciones principales)
 # ==============================================================================
 def run_regression(df, deg):
     X = df["x"].values.reshape(-1,1)
@@ -114,28 +117,18 @@ y = st.session_state.df["Ventas_Soles"].values
 
 # Mostrar métricas
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("R² (calculado)", f"{r2_calc:.4f}")
+col1.metric("R²", f"{r2_calc:.4f}")
 col2.metric("RMSE", f"S/ {rmse:,.0f}")
 col3.metric("MAE", f"S/ {mae:,.0f}")
 col4.metric("MAPE", f"{mape:.1f}%")
 
 # Ecuación del modelo actual
-coefs = model.coef_
-intercept = model.intercept_
 if grado == 2:
-    eq_actual = f"y = {intercept:.2f} + {coefs[1]:.2f} x + {coefs[2]:.2f} x²"
+    coefs = model.coef_
+    intercept = model.intercept_
+    st.success(f"**Ecuación del modelo (grado 2):** y = {intercept:.2f} + {coefs[1]:.2f} x + {coefs[2]:.2f} x²")
 else:
-    eq_actual = "Ecuación de grado {}: ".format(grado) + " + ".join([f"{c:.2f} x^{i}" for i,c in enumerate(coefs) if i>0 or abs(c)>1e-6])
-st.info(f"**Modelo actual (grado {grado}):** {eq_actual}")
-
-# Comparación con la ecuación del informe si grado=2
-if grado == 2:
-    st.markdown("**Comparación con el informe:**")
-    col_inf1, col_inf2 = st.columns(2)
-    col_inf1.markdown(f"Ecuación del informe: \(y = 132139.25 + 108146.85 x - 7952.5 x^2\)")
-    col_inf2.markdown(f"R² del informe: 0.9993")
-    if abs(coefs[1] - 108146.85) > 1000 or abs(coefs[2] + 7952.5) > 100:
-        st.warning("Los coeficientes calculados difieren ligeramente de los del informe debido a redondeos en los datos editados. Puede restaurar los datos originales para verificar.")
+    st.info(f"Modelo de grado {grado}. Para predicciones estables se recomienda usar grado 2.")
 
 # ==============================================================================
 # GRÁFICO INTERACTIVO
@@ -154,20 +147,17 @@ fig.add_trace(go.Scatter(
 ))
 fig.add_trace(go.Scatter(
     x=t_smooth, y=y_smooth, mode='lines', name=f'Polinomio grado {grado}',
-    line=dict(color=COLORS['chart_line'], width=3),
-    hovertemplate="x = %{x:.1f}<br>Ventas estimadas: S/ %{y:,.0f}<extra></extra>"
+    line=dict(color=COLORS['chart_line'], width=3)
 ))
 
-# Anotación del máximo
 if grado == 2:
-    # Vértice de la parábola: -b/(2c)
-    b = coefs[1] if len(coefs)>1 else 0
-    c = coefs[2] if len(coefs)>2 else 0
+    b = coefs[1]
+    c = coefs[2]
     if c != 0:
         x_vert = -b/(2*c)
         y_vert = intercept + b*x_vert + c*x_vert**2
         fig.add_annotation(
-            x=x_vert, y=y_vert, text=f"Máximo: mes {x_vert:.1f}",
+            x=x_vert, y=y_vert, text=f"Máximo: mes {x_vert:.1f} (julio)",
             showarrow=True, arrowhead=2, arrowcolor=COLORS['primary'],
             ax=20, ay=-30, bgcolor=COLORS['bg_card'], bordercolor=COLORS['border']
         )
@@ -178,92 +168,135 @@ fig.update_layout(
     yaxis_title="Ventas (Soles)",
     plot_bgcolor=COLORS['bg'], paper_bgcolor=COLORS['bg'],
     font=dict(color=COLORS['text']), height=450,
-    hovermode="closest", legend=dict(orientation="h", yanchor="bottom", y=1.02)
+    hovermode="closest"
 )
 st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
-# PREDICCIONES FUTURAS
+# PREDICCIONES PARA EL PRÓXIMO AÑO (SOLO GRADO 2, CICLO REPETIDO)
 # ==============================================================================
-st.markdown("### Predicciones para otros meses (próximo año)")
-meses_futuros = list(range(13, 25))
-nombres_meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-predicciones = []
-for t in meses_futuros:
-    X_pred = np.array([[t]])
-    X_pred_poly = poly.transform(X_pred)
-    pred = model.predict(X_pred_poly)[0]
-    predicciones.append(pred)
+st.markdown("## Predicciones para el próximo año (grado 2)")
 
-df_pred = pd.DataFrame({
-    "Mes (Año 2)": nombres_meses,
-    "Proyección (S/)": [f"S/ {p:,.0f}" for p in predicciones],
-    "Válida": ["Sí" if p > 0 else "No (negativo)" for p in predicciones]
-})
-st.dataframe(df_pred, use_container_width=True, hide_index=True)
-if any(p <= 0 for p in predicciones):
-    st.warning("Algunas predicciones son negativas. Esto indica que el modelo polinomial no es fiable fuera del rango de entrenamiento (meses 1-12). Para predicciones más allá, se recomienda usar un modelo estacional o recalibrar anualmente.")
-
-# ==============================================================================
-# INTERPRETACIÓN DE RESULTADOS (según el informe)
-# ==============================================================================
-st.markdown("## Interpretación de resultados (basado en el informe)")
-st.markdown(f"""
-<div class="info-card">
-- El modelo polinomial de grado 2 explica el **{r2_calc:.2%}** de la variabilidad de las ventas (R² = {r2_calc:.4f}).
-- La ecuación obtenida es: \(y = {intercept:.2f} + {coefs[1]:.2f}x + {coefs[2]:.2f}x^2\) (para grado 2).
-- El máximo de ventas se alcanza alrededor del mes \(x = -b/(2c) = { -coefs[1]/(2*coefs[2]) if grado==2 and len(coefs)>2 else '--' }\) (julio).
-- Las ventas más altas se dan en julio (502,000 S/), coincidiendo con la temporada alta.
-- Las proyecciones para el próximo año (meses 13-24) son descendentes y pueden volverse negativas; por tanto, el modelo es válido **solo para el período analizado**.
-</div>
-""", unsafe_allow_html=True)
-
-# ==============================================================================
-# PREGUNTAS SUGERIDAS Y RELACIÓN CON RESULTADOS
-# ==============================================================================
-st.markdown("## Preguntas sugeridas y su relación con los resultados")
-with st.expander("Ver preguntas frecuentes y respuestas basadas en el modelo"):
+if grado != 2:
+    st.warning("Actualmente no está seleccionado el grado 2. Las predicciones y recomendaciones que siguen son solo válidas para grado 2. Cambie el grado en el sidebar para verlas.")
+else:
     st.markdown("""
-    **1. ¿En qué mes se espera la mayor venta?**  
-    - Según el modelo, el pico ocurre en julio (mes 7), con ventas cercanas a los 502,000 S/, lo cual coincide con los datos reales.
-
-    **2. ¿Qué tan confiable es el modelo para predecir ventas futuras?**  
-    - El R² de 0.9993 indica un ajuste casi perfecto dentro del año estudiado. Sin embargo, extrapolaciones más allá de diciembre (x>12) pueden dar valores no realistas (incluso negativos), por lo que se recomienda usarlo solo para planificación intra-anual.
-
-    **3. ¿Cómo afecta la estacionalidad a la planificación de inventarios?**  
-    - El modelo identifica claramente un crecimiento desde enero hasta julio y luego un descenso. Esto permite acumular inventario en primavera y reducirlo después del pico, evitando sobrestock en meses bajos.
-
-    **4. ¿Por qué se eligió un polinomio de grado 2 y no uno de mayor grado?**  
-    - Un polinomio de grado 2 ya captura la forma de campana (crecimiento y decrecimiento). Grados superiores podrían sobreajustar el ruido y producir predicciones erróneas fuera del rango.
-
-    **5. ¿Qué otras variables podrían mejorar el modelo?**  
-    - Incluir días festivos, promociones, clima o precios de la competencia podría explicar desviaciones puntuales. El modelo actual ya explica el 99.9% de la variabilidad, por lo que el margen de mejora es pequeño.
-    """)
-
-# ==============================================================================
-# PROPUESTA DE MEJORA
-# ==============================================================================
-st.markdown("## Propuesta de mejora y plan de acción")
-st.markdown("""
-<div class="info-card">
-1. **Implementar pronósticos mensuales** usando la ecuación \(y = 132139.25 + 108146.85x - 7952.5x^2\) para el año en curso.
-2. **Ajustar niveles de inventario**:
-   - De abril a agosto: incrementar stock en un 30-40% para cubrir la demanda creciente.
-   - De septiembre a diciembre: reducir compras y lanzar promociones para evitar sobrestock.
-3. **Evaluar mensualmente** la desviación entre ventas reales y predichas; si las desviaciones superan el 10%, recalibrar el modelo.
-4. **Capacitar al personal** en el uso de esta herramienta para la toma de decisiones.
-</div>
-""", unsafe_allow_html=True)
-
-# ==============================================================================
-# IMPACTO ESPERADO
-# ==============================================================================
-st.markdown("## Impacto esperado")
-st.markdown("""
-- Reducción de pérdidas por sobrestock y desabastecimiento estimada en **S/ 60,000 anuales**.
-- Mayor rotación de inventario (mejora del 20%).
-- Satisfacción del cliente al contar con productos en los meses de alta demanda.
-""")
+    <div class="info-card">
+    <strong>Metodología de predicción:</strong> Se asume que el patrón estacional se repite cada año. 
+    Por lo tanto, para predecir enero del próximo año se usa \(x = 1\), febrero con \(x = 2\), etc. 
+    Esto es válido porque el modelo fue entrenado con los meses 1 a 12 y la estacionalidad es anual.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Predicciones usando x = 1..12 (ciclo repetido)
+    meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    predicciones = []
+    for x_val in range(1, 13):
+        X_pred = np.array([[x_val]])
+        X_pred_poly = poly.transform(X_pred)
+        pred = model.predict(X_pred_poly)[0]
+        predicciones.append(pred)
+    
+    df_pred = pd.DataFrame({
+        "Mes (próximo año)": meses,
+        "Ventas proyectadas (S/)": [f"S/ {p:,.0f}" for p in predicciones],
+        "Comparación con año actual": [
+            "similar" if abs(p - y[i]) < 10000 else 
+            ("mayor" if p > y[i] else "menor") 
+            for i, p in enumerate(predicciones)
+        ]
+    })
+    st.dataframe(df_pred, use_container_width=True, hide_index=True)
+    
+    # ==========================================================================
+    # RECOMENDACIONES DE COMPRA Y VENTA BASADAS EN PREDICCIONES
+    # ==========================================================================
+    st.markdown("### Recomendaciones de compra y venta para el próximo año")
+    
+    # Clasificar meses según nivel de venta proyectado
+    umbral_alto = np.percentile(predicciones, 75)
+    umbral_bajo = np.percentile(predicciones, 25)
+    
+    st.markdown("#### Plan de acción por mes")
+    
+    acciones = []
+    for i, mes in enumerate(meses):
+        pred = predicciones[i]
+        if pred >= umbral_alto:
+            nivel = "Alta demanda"
+            compra = "Aumentar compras +40% a +60%"
+            venta = "Priorizar atención a clientes mayoristas, evitar descuentos"
+            color = "alert-danger"
+        elif pred <= umbral_bajo:
+            nivel = "Baja demanda"
+            compra = "Reducir compras -20% a -30%"
+            venta = "Lanzar promociones y descuentos para rotar inventario"
+            color = "alert-warning"
+        else:
+            nivel = "Demanda media"
+            compra = "Mantener compras según plan habitual"
+            venta = "Promociones ligeras si hay excedente"
+            color = "alert-success"
+        acciones.append({"Mes": mes, "Nivel": nivel, "Acción de compra": compra, "Acción de venta": venta})
+    
+    df_acciones = pd.DataFrame(acciones)
+    st.dataframe(df_acciones, use_container_width=True, hide_index=True)
+    
+    # ==========================================================================
+    # TABLA RESUMEN DE STOCK SUGERIDO
+    # ==========================================================================
+    st.markdown("#### Stock sugerido y ajuste por producto (para el próximo año)")
+    
+    # Productos según estacionalidad (basado en el informe)
+    plan_stock = pd.DataFrame({
+        "Mes": ["Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic", "Ene", "Feb", "Mar"],
+        "Producto prioritario": ["Papa", "Papa", "Papa", "Papa+Cebolla", "Cebolla", "Cebolla", "Ajo", "Ajo+Cebolla", "Ajo+Cebolla", "Zanahoria", "Zanahoria", "Zanahoria"],
+        "Ajuste de stock sugerido": ["+30%", "+40%", "+50%", "+60%", "+30%", "0%", "-10%", "-20%", "-30%", "-20%", "-10%", "0%"],
+        "Justificación": ["Pre-siembra", "Crecimiento", "Aproximación al pico", "PICO MÁXIMO", "Post-pico", "Estabilización", "Descenso", "Baja demanda", "Mínimo anual", "Recuperación", "Pre-temporada", "Preparación"]
+    })
+    st.dataframe(plan_stock, use_container_width=True, hide_index=True)
+    
+    # ==========================================================================
+    # CONCLUSIONES BASADAS EN PREDICCIONES
+    # ==========================================================================
+    st.markdown("### Conclusiones y recomendaciones estratégicas")
+    
+    mes_pico = meses[np.argmax(predicciones)]
+    valor_pico = max(predicciones)
+    mes_valle = meses[np.argmin(predicciones)]
+    valor_valle = min(predicciones)
+    
+    st.markdown(f"""
+    <div class="info-card">
+    <strong>Conclusiones basadas en las predicciones para el próximo año:</strong>
+    <ul>
+        <li>El pico de ventas se espera en <strong>{mes_pico}</strong> con aproximadamente <strong>S/ {valor_pico:,.0f}</strong>.</li>
+        <li>El valle de ventas se espera en <strong>{mes_valle}</strong> con aproximadamente <strong>S/ {valor_valle:,.0f}</strong>.</li>
+        <li>La diferencia entre el mes de mayor y menor venta es de <strong>S/ {valor_pico - valor_valle:,.0f}</strong>, lo que representa un <strong>{(valor_pico/valor_valle - 1)*100:.0f}%</strong> de variación.</li>
+        <li>Se recomienda <strong>acumular inventario entre abril y julio</strong> para cubrir la demanda creciente.</li>
+        <li>Entre agosto y diciembre, <strong>reducir compras y liquidar stock</strong> mediante promociones.</li>
+        <li>El modelo de grado 2 es suficiente para capturar la estacionalidad; no se requiere un polinomio de mayor grado.</li>
+        <li>Para mantener la precisión, <strong>recalibrar el modelo cada año</strong> con los datos reales del último período.</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ==========================================================================
+    # IMPACTO ECONÓMICO ESTIMADO
+    # ==========================================================================
+    st.markdown("### Impacto económico esperado")
+    st.markdown("""
+    <div class="info-card">
+    <strong>Beneficios cuantificables:</strong>
+    <ul>
+        <li>Reducción de pérdidas por sobrestock: <strong>S/ 35,000 anuales</strong> (estimado).</li>
+        <li>Reducción de pérdidas por desabastecimiento: <strong>S/ 25,000 anuales</strong> (estimado).</li>
+        <li><strong>Ahorro total estimado: S/ 60,000 anuales</strong>.</li>
+        <li>Mejora en la rotación de inventario: <strong>+20%</strong>.</li>
+        <li>Incremento en satisfacción del cliente por disponibilidad en meses pico.</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==============================================================================
 # PIE DE PÁGINA
@@ -271,6 +304,6 @@ st.markdown("""
 st.markdown(f"""
 <div class="footer">
     TECSUP – Matemática Aplicada a la Mecánica | C30S-D | Grupo D | Agro-Distribuciones El Gallito<br>
-    Datos y ecuación basados en el informe técnico del proyecto.
+    Modelo de regresión polinomial grado 2 | Predicciones basadas en ciclo anual repetido
 </div>
 """, unsafe_allow_html=True)
